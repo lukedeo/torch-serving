@@ -1,21 +1,39 @@
 import torch
+from typing import Dict, List
 
 
-class SomeJitModule(torch.jit.ScriptModule):
+class SomeJitModule(torch.nn.Module):
+
     def __init__(self, N, M):
         super(SomeJitModule, self).__init__()
         self.fc1 = torch.nn.Linear(N, 10000)
         self.fc2 = torch.nn.Linear(10000, 1000)
         self.fc3 = torch.nn.Linear(1000, M)
 
-    @torch.jit.script_method
-    def forward(self, x, y):
-        # Note two inputs and a list of tensors as outputs. For now, we support
-        # single tensors or lists of tensors for output, and any number of
-        # tensors as input.
-        return [self.fc3(self.fc2(self.fc1(x))) + y * 2, y]
+    def forward(
+        self,
+        d: List[torch.Tensor],
+        o: torch.Tensor,
+        td: Dict[str, torch.Tensor],
+        n: int,
+        s: str,
+    ):
+        x = d[0]
+        y = d[1]
+        return (
+            {
+                "out": (
+                    [
+                        self.fc3(self.fc2(self.fc1(x + td["x"]))) + y * 2,
+                        y + o + td["y"] + n,
+                    ],
+                    s,
+                    n,
+                )
+            },
+            "some string output",
+        )
 
 
-my_script_module = SomeJitModule(2, 3)
-
+my_script_module = torch.jit.script(SomeJitModule(2, 3))
 my_script_module.save("model-example.pt")

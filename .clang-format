@@ -1,0 +1,10 @@
+BasedOnStyle: Google
+
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+AllowShortCaseLabelsOnASingleLine: false
+
+SpaceAfterCStyleCast: true
+
+SpaceBeforeCpp11BracedList: true
