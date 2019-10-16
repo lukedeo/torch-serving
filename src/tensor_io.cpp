@@ -2,17 +2,16 @@
 // Created by Luke de Oliveira on 2019-08-08.
 //
 
-#include <torch/csrc/utils/tensor_dtypes.h>
-#include <torch/jit.h>
-#include <torch/types.h>
-
 #include "torch_serving/tensor_io.h"
+
+#include <torch/csrc/utils/tensor_dtypes.h>
+#include <torch/types.h>
 
 namespace json = nlohmann;
 
 namespace torch_serving {
 
-template<typename T>
+template <typename T>
 std::vector<T> TensorToStdVector(const torch::Tensor &t) {
   std::vector<T> tensor_vec(t.data_ptr<T>(), t.data_ptr<T>() + t.numel());
   return tensor_vec;
@@ -162,7 +161,6 @@ json::json GenericDictToJson(const torch::jit::IValue &torch_value) {
 
 json::json TorchValueToJson(const torch::jit::IValue &torch_value) {
   if (torch_value.isTensor()) {
-//    return TorchValueToJson(torch_value.toTensor());
     return TensorToJson(torch_value.toTensor());
   } else if (torch_value.isTensorList()) {
     auto tensor_list = torch_value.toTensorListRef();
@@ -217,8 +215,8 @@ torch::Tensor ParseJsonTensor(const json::json &payload) {
         "to be converted to 'type' of 'tensor'");
   }
   std::string data_type = payload.contains("data_type")
-                          ? payload.at("data_type").get<std::string>()
-                          : "float32";
+                              ? payload.at("data_type").get<std::string>()
+                              : "float32";
   auto flattened_tensor = tensor.get<std::vector<float>>();
   auto tensor_shape = payload.at("shape").get<std::vector<long long>>();
   long long total_elements = 1;
@@ -228,11 +226,11 @@ torch::Tensor ParseJsonTensor(const json::json &payload) {
   if (flattened_tensor.size() != (unsigned long) total_elements) {
     throw TensorShapeError(
         "Dimension mismatch - shape expected " +
-            std::to_string(total_elements) + " total elements, found " +
-            std::to_string(flattened_tensor.size()) + " total elements");
+        std::to_string(total_elements) + " total elements, found " +
+        std::to_string(flattened_tensor.size()) + " total elements");
   }
-  return torch::tensor(flattened_tensor,
-                       torch::TensorOptions().dtype(StringToScalarType(data_type)))
+  return torch::tensor(flattened_tensor, torch::TensorOptions().dtype(
+                                             StringToScalarType(data_type)))
       .reshape(tensor_shape);
 }
 
@@ -247,7 +245,8 @@ std::vector<torch::Tensor> ParseJsonTensorList(const json::json &payload) {
   return tensor_vec;
 }
 
-c10::Dict<std::string, torch::Tensor> ParseJsonTensorDict(const json::json &payload) {
+c10::Dict<std::string, torch::Tensor> ParseJsonTensorDict(
+    const json::json &payload) {
   if (!payload.is_object()) {
     throw TensorIOError("Type tensor_dict must be an object");
   }
@@ -309,8 +308,8 @@ std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
       throw TensorIOError("Unsupported type: " + type);
     }
   }
-    // Next, we check the case that it's an array (one element per function
-    // argument to the JIT-traced function)
+  // Next, we check the case that it's an array (one element per function
+  // argument to the JIT-traced function)
   else {
     for (const auto &input : payload) {
       if (!input.is_object()) {

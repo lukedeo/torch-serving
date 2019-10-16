@@ -30,10 +30,11 @@ class SomeJitModule(torch.nn.Module):
                 s,
                 n,
             ),
-            "desc": ("foobar", ),
+            # "desc": ("foobar", ),
         }
 
 
 my_script_module = torch.jit.script(SomeJitModule(2, 3))
+
 
 my_script_module.save("model-example.pt")

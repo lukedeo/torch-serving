@@ -2,15 +2,15 @@
 // Created by Luke de Oliveira on 2019-08-08.
 //
 
-#include <future>
-#include <random>
+#include "torch_serving/servable_manager.h"
 
 #include <spdlog/logger.h>
 #include <spdlog/sinks/stdout_color_sinks-inl.h>
 #include <spdlog/spdlog.h>
 #include <torch/script.h>
 
-#include "torch_serving/servable_manager.h"
+#include <future>
+#include <random>
 
 namespace torch_serving {
 
@@ -73,7 +73,7 @@ torch::jit::IValue ServableManager::InferenceRequest(
   } catch (const std::exception &e) {
     if (model_cache_.contains(filepath)) {
       logger_->warn("Removing filepath: " + filepath +
-          " from cache due to caught exception.");
+                    " from cache due to caught exception.");
       model_cache_.remove(filepath);
     }
     throw;
@@ -92,7 +92,8 @@ std::future<torch::jit::IValue> ServableManager::AsyncInferenceRequest(
 
 std::shared_ptr<torch::jit::script::Module>
 ServableManager::LoadServableFromDisk(const std::string &filepath) {
-  return std::make_shared<torch::jit::script::Module>(torch::jit::load(filepath));
+  return std::make_shared<torch::jit::script::Module>(
+      torch::jit::load(filepath));
 }
 
 }  // namespace torch_serving

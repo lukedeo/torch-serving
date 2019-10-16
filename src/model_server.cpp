@@ -2,13 +2,14 @@
 // Created by Luke de Oliveira on 2019-08-08.
 //
 
-#include <memory>
+#include "torch_serving/model_server.h"
 
 #include <spdlog/sinks/stdout_color_sinks-inl.h>
 #include <spdlog/spdlog.h>
 #include <torch/script.h>
 
-#include "torch_serving/model_server.h"
+#include <memory>
+
 #include "torch_serving/tensor_io.h"
 
 namespace json = nlohmann;
@@ -69,10 +70,26 @@ void ModelServer::SetResponse(httplib::Response &response, const int &code,
 }
 
 void ModelServer::SetupEndpoints() {
-  // Recieves POST /v1/serve/{modelIdentifier} requests
-  server_.Post(R"(/v1/serve/(.*))", [&](const httplib::Request &req,
-                                        httplib::Response &res) {
-    std::string servable_identifier = req.matches[1];
+  // Recieves GET /healthcheck requests
+  server_.Get("/healthcheck",
+              [&](const httplib::Request &req, httplib::Response &res) {
+                SetResponse(res, 200, "OK");
+              });
+  // Recieves POST /serve requests
+  server_.Post("/serve", [&](const httplib::Request &req,
+                             httplib::Response &res) {
+    auto p_count = req.params.count("servable_identifier");
+    if (!p_count) {
+      SetResponse(res, 400, "Missing required parameter `servable_identifier`");
+      return;
+    } else if (p_count > 1) {
+      SetResponse(res, 400,
+                  "Required parameter `servable_identifier` must only be "
+                  "passed in once");
+      return;
+    }
+    auto servable_identifier = req.params.find("servable_identifier")->second;
+
     // First, just make sure we sent *something* over the wire.
     if (req.body.empty()) {
       SetResponse(res, 400, "Empty body");
