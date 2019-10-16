@@ -2,7 +2,7 @@ import torch
 from typing import Dict, List, Any
 
 
-class SomeJitModule(torch.jit.ScriptModule):
+class SomeJitModule(torch.nn.Module):
 
     def __init__(self, N, M):
         super(SomeJitModule, self).__init__()
@@ -10,7 +10,7 @@ class SomeJitModule(torch.jit.ScriptModule):
         self.fc2 = torch.nn.Linear(10000, 1000)
         self.fc3 = torch.nn.Linear(1000, M)
 
-    @torch.jit.script_method
+    # @torch.jit.script_method
     def forward(
         self,
         d: List[torch.Tensor],
@@ -30,10 +30,10 @@ class SomeJitModule(torch.jit.ScriptModule):
                 s,
                 n,
             ),
-            "desc": "foobar",
+            "desc": ("foobar", ),
         }
 
 
-my_script_module = SomeJitModule(2, 3)
+my_script_module = torch.jit.script(SomeJitModule(2, 3))
 
 my_script_module.save("model-example.pt")

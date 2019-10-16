@@ -12,9 +12,9 @@ namespace json = nlohmann;
 
 namespace torch_serving {
 
-template <typename T>
+template<typename T>
 std::vector<T> TensorToStdVector(const torch::Tensor &t) {
-  std::vector<T> tensor_vec(t.data<T>(), t.data<T>() + t.numel());
+  std::vector<T> tensor_vec(t.data_ptr<T>(), t.data_ptr<T>() + t.numel());
   return tensor_vec;
 }
 
@@ -136,8 +136,10 @@ json::json ScalarToJson(const torch::jit::IValue &torch_value) {
   json::json payload = {{"type", "scalar"}, {"data_type", data_type}};
   if (scalar.isFloatingPoint()) {
     payload["value"] = scalar.toFloat();
-  } else if (scalar.isIntegral()) {
+  } else if (scalar.isIntegral(false)) {
     payload["value"] = scalar.toInt();
+  } else if (scalar.isBoolean()) {
+    payload["value"] = scalar.toBool();
   } else {
     throw TensorTypeError("Unimplemented scalar type");
   }
@@ -146,16 +148,16 @@ json::json ScalarToJson(const torch::jit::IValue &torch_value) {
 
 json::json GenericDictToJson(const torch::jit::IValue &torch_value) {
   json::json payload = {{"type", "generic_dict"}};
-  const auto &dict = torch_value.toGenericDictRef();
+  const auto &dict = torch_value.toGenericDict();
   for (auto &entry : dict) {
-    if (!entry.first.isString()) {
+    if (!entry.key().isString()) {
       throw TensorIOError(
           "Can only convert GenericDicts to Json if keys are string type");
     }
-    payload["value"][entry.first.toStringRef()] =
-        TorchValueToJson(entry.second);
+    payload["value"][entry.key().toStringRef()] =
+        TorchValueToJson(entry.value());
   }
-  return std::move(payload);
+  return payload;
 }
 
 json::json TorchValueToJson(const torch::jit::IValue &torch_value) {
@@ -215,24 +217,23 @@ torch::Tensor ParseJsonTensor(const json::json &payload) {
         "to be converted to 'type' of 'tensor'");
   }
   std::string data_type = payload.contains("data_type")
-                              ? payload.at("data_type").get<std::string>()
-                              : "float32";
+                          ? payload.at("data_type").get<std::string>()
+                          : "float32";
   auto flattened_tensor = tensor.get<std::vector<float>>();
   auto tensor_shape = payload.at("shape").get<std::vector<long long>>();
   long long total_elements = 1;
   for (const auto &dim : tensor_shape) {
     total_elements = total_elements * dim;
   }
-  if (flattened_tensor.size() != total_elements) {
+  if (flattened_tensor.size() != (unsigned long) total_elements) {
     throw TensorShapeError(
         "Dimension mismatch - shape expected " +
-        std::to_string(total_elements) + " total elements, found " +
-        std::to_string(flattened_tensor.size()) + " total elements");
+            std::to_string(total_elements) + " total elements, found " +
+            std::to_string(flattened_tensor.size()) + " total elements");
   }
-  return std::move(
-      torch::tensor(flattened_tensor,
-                    torch::TensorOptions().dtype(StringToScalarType(data_type)))
-          .reshape(tensor_shape));
+  return torch::tensor(flattened_tensor,
+                       torch::TensorOptions().dtype(StringToScalarType(data_type)))
+      .reshape(tensor_shape);
 }
 
 std::vector<torch::Tensor> ParseJsonTensorList(const json::json &payload) {
@@ -243,16 +244,16 @@ std::vector<torch::Tensor> ParseJsonTensorList(const json::json &payload) {
   for (const auto &tensor_elem : payload) {
     tensor_vec.emplace_back(ParseJsonTensor(tensor_elem));
   }
-  return std::move(tensor_vec);
+  return tensor_vec;
 }
 
-torch::ivalue::UnorderedMap ParseJsonTensorDict(const json::json &payload) {
+c10::Dict<std::string, torch::Tensor> ParseJsonTensorDict(const json::json &payload) {
   if (!payload.is_object()) {
     throw TensorIOError("Type tensor_dict must be an object");
   }
-  torch::ivalue::UnorderedMap tensor_dict;
+  torch::Dict<std::string, torch::Tensor> tensor_dict;
   for (auto &tensor_elem : payload.items()) {
-    tensor_dict[tensor_elem.key()] = ParseJsonTensor(tensor_elem.value());
+    tensor_dict.insert(tensor_elem.key(), ParseJsonTensor(tensor_elem.value()));
   }
   return tensor_dict;
 }
@@ -291,8 +292,7 @@ std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
     if (type == "tensor") {
       inputs.emplace_back(ParseJsonTensor(payload));
     } else if (type == "tensor_list") {
-      const torch::IValue tensor_list(ParseJsonTensorList(payload.at("value")));
-      inputs.emplace_back(tensor_list);
+      inputs.emplace_back(ParseJsonTensorList(payload.at("value")));
     } else if (type == "tensor_dict") {
       const torch::IValue ival_tensor_dict(
           ParseJsonTensorDict(payload.at("value")));
@@ -309,8 +309,8 @@ std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
       throw TensorIOError("Unsupported type: " + type);
     }
   }
-  // Next, we check the case that it's an array (one element per function
-  // argument to the JIT-traced function)
+    // Next, we check the case that it's an array (one element per function
+    // argument to the JIT-traced function)
   else {
     for (const auto &input : payload) {
       if (!input.is_object()) {

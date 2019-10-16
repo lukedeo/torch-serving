@@ -5,7 +5,7 @@ A simple, limited scope model server for [JIT compiled PyTorch models](https://p
 The key idea is that one should be able to spin up a simple HTTP service that should *just work*, and be able to handle inbound requests to JIT compiled models. We want to do a few key things to make this work well:
 
 1. Model caching - store deserialized `torch::jit::Module` pointers in an (modification-threadsafe) LRU cache so we don't need to pay deserialization cost every roundtrip
-2. JSON marshaling for tensor types. 
+2. JSON marshaling for tensor types.
 3. Speed!
 
 # Building the project
@@ -25,6 +25,8 @@ Run:
 ```bash
 mkdir build && cd build
 cmake -DCMAKE_PREFIX_PATH=/path/to/libtorch ..
+# OR
+cmake -DCMAKE_PREFIX_PATH=$(scripts/libtorch-root) ..
 make
 ```
 
@@ -36,7 +38,7 @@ mv torch-serving .. && cd ..
 
 # Saving a JIT model (from Python)
 
-Now, ensure you have Python & `torch` installed, and run 
+Now, ensure you have Python & `torch` installed, and run
 
 
 ```bash

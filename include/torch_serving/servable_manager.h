@@ -36,12 +36,10 @@ class ServableManager {
       std::launch policy = std::launch::async);
 
  private:
-  std::shared_ptr<torch::jit::script::Module> LoadServableFromDisk(
+  static std::shared_ptr<torch::jit::script::Module> LoadServableFromDisk(
       const std::string &filepath);
 
   std::shared_ptr<spdlog::logger> logger_;
-
-  size_t size_;
 
   // N.B., this uses a mutex so the insertion and retrieval of models into
   // model_cache_ is thread safe/

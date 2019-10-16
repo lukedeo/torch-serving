@@ -17,9 +17,8 @@ namespace torch_serving {
 ServableManager::ServableManager() : ServableManager(5, 0) {}
 
 ServableManager::ServableManager(const size_t &size, const size_t &buffer_size)
-    : size_(size),
-      model_cache_(size, buffer_size),
-      logger_(spdlog::get("servable_manager")) {
+    : logger_(spdlog::get("servable_manager")),
+      model_cache_(size, buffer_size) {
   if (!logger_) {
     logger_ = spdlog::stdout_color_mt("servable_manager");
   }
@@ -74,7 +73,7 @@ torch::jit::IValue ServableManager::InferenceRequest(
   } catch (const std::exception &e) {
     if (model_cache_.contains(filepath)) {
       logger_->warn("Removing filepath: " + filepath +
-                    " from cache due to caught exception.");
+          " from cache due to caught exception.");
       model_cache_.remove(filepath);
     }
     throw;
@@ -93,14 +92,7 @@ std::future<torch::jit::IValue> ServableManager::AsyncInferenceRequest(
 
 std::shared_ptr<torch::jit::script::Module>
 ServableManager::LoadServableFromDisk(const std::string &filepath) {
-  auto module = torch::jit::load(filepath);
-  if (module == nullptr || !module) {
-    throw std::runtime_error("Failed to load Module from filename: " +
-                             filepath);
-  }
-  logger_->info("Servable from filename: " + filepath +
-                " successfully loaded from disk");
-  return module;
+  return std::make_shared<torch::jit::script::Module>(torch::jit::load(filepath));
 }
 
 }  // namespace torch_serving
