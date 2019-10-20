@@ -1,5 +1,6 @@
 //
-// Created by Luke de Oliveira on 2019-08-08.
+// (c) 2019, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
 //
 
 #include "torch_serving/servable_manager.h"
@@ -83,9 +84,9 @@ torch::jit::IValue ServableManager::InferenceRequest(
 std::future<torch::jit::IValue> ServableManager::AsyncInferenceRequest(
     const std::string &filepath, const std::vector<torch::jit::IValue> &input,
     const float &invalidation_prob, std::launch policy) {
-  logger_->info("Launching async inference request");
+  logger_->debug("Launching async inference request");
   return std::async(policy, [this, &filepath, &input, &invalidation_prob]() {
-    logger_->info("Running inference in a future.");
+    logger_->debug("Running inference in a future.");
     return InferenceRequest(filepath, input, invalidation_prob);
   });
 }

@@ -1,5 +1,6 @@
 //
-// Created by Luke de Oliveira on 2019-08-08.
+// (c) 2019, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
 //
 
 #include "torch_serving/tensor_io.h"
@@ -51,6 +52,8 @@ json::json TensorToJson(const torch::Tensor &tensor) {
 
   json::json payload = {{"type", "tensor"}, {"shape", tensor_shape}};
 
+  // Switch on the datatype, and fill in the raveled tensor and the string
+  // version of the data type.
   switch (dtype) {
     case c10::ScalarType::Byte:
       payload["data_type"] = "uint8";
@@ -89,7 +92,7 @@ json::json TensorToJson(const torch::Tensor &tensor) {
       payload["value"] = TensorToStdVector<bool>(tensor);
       break;
     default:
-      throw TensorIOError("Invalid scalar type");
+      throw TensorTypeError("Unsupported scalar type");
   }
   return payload;
 }
@@ -129,7 +132,7 @@ json::json ScalarToJson(const torch::jit::IValue &torch_value) {
       data_type = "bool";
       break;
     default:
-      throw TensorIOError("Invalid scalar type");
+      throw TensorTypeError("Invalid scalar type");
   }
 
   json::json payload = {{"type", "scalar"}, {"data_type", data_type}};
@@ -214,6 +217,7 @@ torch::Tensor ParseJsonTensor(const json::json &payload) {
         "Error parsing payload, expected 'value' to be an array "
         "to be converted to 'type' of 'tensor'");
   }
+
   std::string data_type = payload.contains("data_type")
                               ? payload.at("data_type").get<std::string>()
                               : "float32";
@@ -267,13 +271,13 @@ std::string ParseJsonString(const json::json &payload) {
 torch::Scalar ParseJsonScalar(const json::json &payload) {
   if ((!payload.contains("data_type")) or
       !payload.at("data_type").is_string()) {
-    throw TensorIOError("Type scalar must specify a `data_type` as a string");
+    throw TensorTypeError("Type scalar must specify a `data_type` as a string");
   }
   const std::string scalar_type = payload.at("data_type").get<std::string>();
   const auto json_scalar = payload.at("value");
 
   if (!json_scalar.is_number()) {
-    throw TensorIOError("Type scalar must be a number");
+    throw TensorTypeError("Type scalar must be a number");
   }
   return torch::scalar_to_tensor(json_scalar.get<float>())
       .to(StringToScalarType(scalar_type))

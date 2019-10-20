@@ -1,5 +1,6 @@
 //
-// Created by Luke de Oliveira on 2019-08-08.
+// (c) 2019, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
 //
 
 #include "torch_serving/model_server.h"
@@ -53,7 +54,8 @@ std::string ModelServer::GetHTTPMessageFromCode(const int &code) {
 }
 void ModelServer::SetResponse(httplib::Response &response, const int &code,
                               const std::string &description,
-                              const json::json &payload) {
+                              const json::json &payload,
+                              const std::string &detail) {
   json::json outbound_payload = {{"code", code},
                                  {"message", GetHTTPMessageFromCode(code)}};
 
@@ -65,17 +67,21 @@ void ModelServer::SetResponse(httplib::Response &response, const int &code,
     outbound_payload["result"] = payload;
   }
 
+  if (!detail.empty()) {
+    outbound_payload["detail"] = detail;
+  }
+
   response.status = code;
   response.set_content(outbound_payload.dump(), "application/json");
 }
 
 void ModelServer::SetupEndpoints() {
-  // Recieves GET /healthcheck requests
+  // Receives GET /healthcheck requests
   server_.Get("/healthcheck",
               [&](const httplib::Request &req, httplib::Response &res) {
                 SetResponse(res, 200, "OK");
               });
-  // Recieves POST /serve requests
+  // Receives POST /serve requests
   server_.Post("/serve", [&](const httplib::Request &req,
                              httplib::Response &res) {
     auto p_count = req.params.count("servable_identifier");
@@ -100,7 +106,7 @@ void ModelServer::SetupEndpoints() {
       try {
         payload = json::json::parse(req.body);
       } catch (const std::exception &err) {
-        SetResponse(res, 400, "Invalid JSON");
+        SetResponse(res, 400, "Invalid JSON", err.what());
         return;
       }
 
@@ -109,13 +115,16 @@ void ModelServer::SetupEndpoints() {
       try {
         inputs = JsonToTorchValue(payload);
       } catch (const TensorIOError &err) {
-        SetResponse(res, 400, "Invalid Input JSON");
+        SetResponse(res, 400, "Invalid Input JSON", err.what());
         return;
       } catch (const TensorShapeError &err) {
-        SetResponse(res, 400, "Incompatible tensor shapes");
+        SetResponse(res, 400, "Incompatible tensor shapes", err.what());
+        return;
+      } catch (const TensorTypeError &err) {
+        SetResponse(res, 400, "Incompatible tensor data type", err.what());
         return;
       } catch (const std::exception &err) {
-        SetResponse(res, 500, "Unexpected server error");
+        SetResponse(res, 500, "Unexpected server error", err.what());
         return;
       }
 
@@ -126,7 +135,7 @@ void ModelServer::SetupEndpoints() {
         async_inference_response = servable_manager_.AsyncInferenceRequest(
             servable_identifier, inputs, 0.0, std::launch::async);
       } catch (const std::exception &err) {
-        SetResponse(res, 500, "Unexpected server error");
+        SetResponse(res, 500, "Unexpected server error", err.what());
         return;
       }
 
@@ -140,7 +149,7 @@ void ModelServer::SetupEndpoints() {
         return;
       } catch (const std::exception &err) {
         logger_->error(err.what());
-        SetResponse(res, 500, "Unexpected server error");
+        SetResponse(res, 500, "Unexpected server error", err.what());
         return;
       }
     }

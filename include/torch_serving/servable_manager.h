@@ -1,5 +1,6 @@
 //
-// Created by Luke de Oliveira on 2019-08-08.
+// (c) 2019, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
 //
 
 #ifndef TORCH_SERVING__SERVABLEMANAGER_H_

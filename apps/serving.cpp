@@ -1,3 +1,8 @@
+//
+// (c) 2019, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
+//
+
 #include <spdlog/logger.h>
 #include <spdlog/sinks/stdout_color_sinks-inl.h>
 
