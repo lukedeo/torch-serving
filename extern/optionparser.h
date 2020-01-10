@@ -159,7 +159,8 @@ class Option {
     return *this;
   }
 
-  template <typename T> Option &default_value(const T &default_value) {
+  template<typename T>
+  Option &default_value(const T &default_value) {
     m_default_value = std::to_string(default_value);
     return *this;
   }
@@ -283,8 +284,7 @@ std::string Option::get_destination(const std::string &first_option,
 class OptionParser {
  public:
   explicit OptionParser(std::string description = "", bool create_help = true)
-      : m_options(0), m_description(std::move(description)),
-        m_pos_args_count(1), m_exit_on_failure(true) {
+      : m_pos_args_count(1), m_options(0), m_description(std::move(description)), m_exit_on_failure(true) {
     if (create_help) {
       add_option("--help", "-h").help("Display this help message and exit.");
     }
@@ -298,7 +298,8 @@ class OptionParser {
                      const std::string &second_option = "");
 
   // We template-specialize these later
-  template <class T = bool> T get_value(const std::string &key);
+  template<class T = bool>
+  T get_value(const std::string &key);
 
   void help();
 
@@ -637,7 +638,8 @@ OptionParser &OptionParser::throw_on_failure(bool throw_) {
   return *this;
 }
 
-template <class T> T OptionParser::get_value(const std::string &key) {
+template<class T>
+T OptionParser::get_value(const std::string &key) {
   try {
     return m_options[m_option_idx.at(key)].found();
   } catch (std::out_of_range &err) {
@@ -677,7 +679,7 @@ GET_VALUE_SPECIALIZE(std::vector<std::string>, { return m_values.at(key); })
     for (auto &entry : m_values.at(key)) {                                     \
       v.push_back(converter(entry));                                           \
     }                                                                          \
-    return std::move(v);                                                       \
+    return v;                                                                  \
   })
 
 GET_VALUE_SPECIALIZE_VECTOR(const char *,

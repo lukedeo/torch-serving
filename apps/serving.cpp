@@ -10,6 +10,9 @@
 
 #include "extern/optionparser.h"
 #include "torch_serving/model_server.h"
+#include "torch_serving/torch_jit_servable.h"
+
+template class torch_serving::ModelServer<torch_serving::TorchJITServable>;
 
 optionparser::OptionParser GetConfiguration(int argc, const char *argv[]) {
   optionparser::OptionParser parser(
@@ -57,9 +60,10 @@ int main(int argc, const char *argv[]) {
   auto model_capacity = config.get_value<int>("model-capacity");
   auto buffer_size = config.get_value<int>("buffer-size");
   auto threads = config.get_value<int>("threads");
-  auto host = config.get_value<std::string>("host");
-  auto port = config.get_value<int>("port");
+  std::string host = config.get_value<std::string>("host");
+  int port = config.get_value<int>("port");
 
-  torch_serving::ModelServer model_server(model_capacity, buffer_size, threads);
+  torch_serving::ModelServer<torch_serving::TorchJITServable> model_server(model_capacity, buffer_size, threads);
+
   model_server.RunServer(host, port);
 }

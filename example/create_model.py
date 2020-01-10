@@ -10,28 +10,35 @@ class SomeJitModule(torch.nn.Module):
         self.fc2 = torch.nn.Linear(10000, 1000)
         self.fc3 = torch.nn.Linear(1000, M)
 
-    # @torch.jit.script_method
-    def forward(
-        self,
-        d: List[torch.Tensor],
-        o,
-        td: Dict[str, torch.Tensor],
-        n: int,
-        s: str,
-    ):
-        x = d[0]
-        y = d[1]
-        return {
-            "out": (
-                [
-                    self.fc3(self.fc2(self.fc1(x + td["x"]))) + y * 2,
-                    y + o + td["y"] + n,
-                ],
-                s,
-                n,
-            ),
-            # "desc": ("foobar", ),
-        }
+    # # @torch.jit.script_method
+    # def forward(
+    #     self,
+    #     d: List[torch.Tensor],
+    #     o,
+    #     td: Dict[str, torch.Tensor],
+    #     n: int,
+    #     s: str,
+    # ):
+    #     x = d[0]
+    #     y = d[1]
+    #     return {
+    #         "out": (
+    #             [
+    #                 self.fc3(self.fc2(self.fc1(x + td["x"]))) + y * 2,
+    #                 y + o + td["y"] + n,
+    #             ],
+    #             s,
+    #             n,
+    #         ),
+    #         # "desc": ("foobar", ),
+    #     }
+    #
+    def forward(self, s: str) -> Dict[str, str]:
+
+        # x = d[0]
+        # y = d[1]
+        # return {"scores": self.fc3(self.fc2(self.fc1(x)))}
+        return {"scores": s}
 
 
 my_script_module = torch.jit.script(SomeJitModule(2, 3))
