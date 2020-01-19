@@ -12,8 +12,6 @@
 #include "torch_serving/model_server.h"
 #include "torch_serving/torch_jit_servable.h"
 
-template class torch_serving::ModelServer<torch_serving::TorchJITServable>;
-
 optionparser::OptionParser GetConfiguration(int argc, const char *argv[]) {
   optionparser::OptionParser parser(
       "torch-serving: a minimal HTTP serving layer for models created with "
@@ -63,7 +61,8 @@ int main(int argc, const char *argv[]) {
   std::string host = config.get_value<std::string>("host");
   int port = config.get_value<int>("port");
 
-  torch_serving::ModelServer<torch_serving::TorchJITServable> model_server(model_capacity, buffer_size, threads);
+  torch_serving::ModelServer<torch_serving::TorchJITServable> model_server(
+      model_capacity, buffer_size, threads);
 
   model_server.RunServer(host, port);
 }

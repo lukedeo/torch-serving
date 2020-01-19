@@ -32,7 +32,8 @@ class TensorShapeError : public std::runtime_error {
 
 json::json TorchValueToJson(const torch::jit::IValue &torch_value);
 
-std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload);
+std::vector<torch::jit::IValue> JsonToTorchValue(
+    const json::json &payload, const at::Device &device = at::kCPU);
 
 }  // namespace torch_serving
 

@@ -238,25 +238,27 @@ torch::Tensor ParseJsonTensor(const json::json &payload) {
       .reshape(tensor_shape);
 }
 
-std::vector<torch::Tensor> ParseJsonTensorList(const json::json &payload) {
+std::vector<torch::Tensor> ParseJsonTensorList(const json::json &payload,
+                                               const at::Device &device) {
   if (!payload.is_array()) {
     throw TensorIOError("Type tensor_list must be an array");
   }
   std::vector<torch::Tensor> tensor_vec;
   for (const auto &tensor_elem : payload) {
-    tensor_vec.emplace_back(ParseJsonTensor(tensor_elem));
+    tensor_vec.emplace_back(ParseJsonTensor(tensor_elem).to(device));
   }
   return tensor_vec;
 }
 
 c10::Dict<std::string, torch::Tensor> ParseJsonTensorDict(
-    const json::json &payload) {
+    const json::json &payload, const at::Device &device) {
   if (!payload.is_object()) {
     throw TensorIOError("Type tensor_dict must be an object");
   }
   torch::Dict<std::string, torch::Tensor> tensor_dict;
   for (auto &tensor_elem : payload.items()) {
-    tensor_dict.insert(tensor_elem.key(), ParseJsonTensor(tensor_elem.value()));
+    tensor_dict.insert(tensor_elem.key(),
+                       ParseJsonTensor(tensor_elem.value()).to(device));
   }
   return tensor_dict;
 }
@@ -284,7 +286,8 @@ torch::Scalar ParseJsonScalar(const json::json &payload) {
       .item();
 }
 
-std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
+std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload,
+                                                 const at::Device &device) {
   std::vector<torch::jit::IValue> inputs;
   // First, we check the case where it's a single input, and convert
   if (payload.is_object()) {
@@ -293,12 +296,12 @@ std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
     const auto type = payload.at("type").get<std::string>();
 
     if (type == "tensor") {
-      inputs.emplace_back(ParseJsonTensor(payload));
+      inputs.emplace_back(ParseJsonTensor(payload).to(device));
     } else if (type == "tensor_list") {
-      inputs.emplace_back(ParseJsonTensorList(payload.at("value")));
+      inputs.emplace_back(ParseJsonTensorList(payload.at("value"), device));
     } else if (type == "tensor_dict") {
       const torch::IValue ival_tensor_dict(
-          ParseJsonTensorDict(payload.at("value")));
+          ParseJsonTensorDict(payload.at("value"), device));
       inputs.emplace_back(ival_tensor_dict);
     } else if (type == "scalar") {
       torch::Scalar scalar_value = ParseJsonScalar(payload);
@@ -319,7 +322,7 @@ std::vector<torch::jit::IValue> JsonToTorchValue(const json::json &payload) {
       if (!input.is_object()) {
         throw TensorIOError("Must be an array of objects");
       }
-      for (const auto &processed_input : JsonToTorchValue(input)) {
+      for (const auto &processed_input : JsonToTorchValue(input, device)) {
         inputs.emplace_back(processed_input);
       }
     }

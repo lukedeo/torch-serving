@@ -17,6 +17,11 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     # Let's nicely support folders in IDE's
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+    # Set up testing
+#    include(CTest)
+#
+#    add_subdirectory(tests)
 endif()
 
 find_package(Torch REQUIRED)
@@ -34,3 +39,11 @@ add_subdirectory(apps)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(extern/spdlog)
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    # Set up testing
+    include(CTest)
+
+    add_subdirectory(tests)
+    add_test(NAME test_tensor_io COMMAND tests/test-torch-serving)
+endif()

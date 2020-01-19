@@ -7,4 +7,8 @@ AllowShortCaseLabelsOnASingleLine: false
 
 SpaceAfterCStyleCast: true
 
+FixNamespaceComments: true
+
+SortIncludes: true
+
 SpaceBeforeCpp11BracedList: true

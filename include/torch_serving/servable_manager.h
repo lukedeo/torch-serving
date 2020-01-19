@@ -7,13 +7,12 @@
 #define TORCH_SERVING__SERVABLEMANAGER_H_
 
 #include <spdlog/logger.h>
-#include <torch/script.h>
+//#include <torch/script.h>
 
 #include <future>
-#include <type_traits>
 
 #include "extern/LRUCache11.hpp"
-//#include "servable.h"
+#include "extern/json.hpp"
 
 #include <spdlog/logger.h>
 #include <spdlog/sinks/stdout_color_sinks-inl.h>
@@ -22,17 +21,19 @@
 
 #include <future>
 #include <random>
+#include <type_traits>
+
+namespace json = nlohmann;
 
 namespace torch_serving {
 
-template <typename _SvTp>
+template <typename ServableType>
 class ServableManager {
-  static_assert(
-      std::is_same<decltype(std::declval<_SvTp>().RunInference(
-                       std::declval<std::vector<torch::jit::IValue>>())),
-                   torch::jit::IValue>::value,
-      "");
-  static_assert(std::is_constructible<_SvTp, std::string>::value, "");
+  static_assert(std::is_same<decltype(std::declval<ServableType>().RunInference(
+                                 std::declval<std::vector<json::json>>())),
+                             json::json>::value,
+                "");
+  static_assert(std::is_constructible<ServableType, std::string>::value, "");
 
  public:
   ServableManager() : ServableManager(5, 0) {}
@@ -45,7 +46,8 @@ class ServableManager {
     }
   }
 
-  std::shared_ptr<_SvTp> GetServable(const std::string &servable_identifier) {
+  std::shared_ptr<ServableType> GetServable(
+      const std::string &servable_identifier) {
     logger_->info("Loading servable from servable_identifier: " +
                   servable_identifier);
     if (model_cache_.contains(servable_identifier)) {
@@ -55,10 +57,10 @@ class ServableManager {
     }
     logger_->info("Cache miss detected for servable_identifier: " +
                   servable_identifier);
-    std::shared_ptr<_SvTp> servable;
+    std::shared_ptr<ServableType> servable;
     // Try to load the servable - if if fails, throw an error.
     try {
-      servable = LoadServableFromDisk(servable_identifier);
+      servable = LoadServableFromIdentifier(servable_identifier);
     } catch (const std::exception &err) {
       const std::string msg("Failed to load from servable_identifier: " +
                             servable_identifier);
@@ -70,8 +72,8 @@ class ServableManager {
     return servable;
   }
 
-  std::shared_ptr<_SvTp> GetServable(const std::string &servable_identifier,
-                                     const float &invalidation_prob) {
+  std::shared_ptr<ServableType> GetServable(
+      const std::string &servable_identifier, const float &invalidation_prob) {
     std::mt19937 generator(
         std::chrono::system_clock::now().time_since_epoch().count());
     std::uniform_real_distribution<float> distribution(0.0, 1.0);
@@ -88,10 +90,9 @@ class ServableManager {
 
   size_t Size() { return model_cache_.size(); }
 
-  torch::jit::IValue InferenceRequest(
-      const std::string &servable_identifier,
-      const std::vector<torch::jit::IValue> &input,
-      const float &invalidation_prob = 0.0) {
+  json::json InferenceRequest(const std::string &servable_identifier,
+                              const json::json &input,
+                              const float &invalidation_prob = 0.0) {
     try {
       return (invalidation_prob > 1e-5
                   ? GetServable(servable_identifier, invalidation_prob)
@@ -107,9 +108,8 @@ class ServableManager {
     }
   }
 
-  std::future<torch::jit::IValue> AsyncInferenceRequest(
-      const std::string &servable_identifier,
-      const std::vector<torch::jit::IValue> &input,
+  std::future<json::json> AsyncInferenceRequest(
+      const std::string &servable_identifier, const json::json &input,
       const float &invalidation_prob = 0.0,
       std::launch policy = std::launch::async) {
     logger_->debug("Launching async inference request");
@@ -121,16 +121,16 @@ class ServableManager {
   }
 
  private:
-  static std::shared_ptr<_SvTp> LoadServableFromDisk(
+  static std::shared_ptr<ServableType> LoadServableFromIdentifier(
       const std::string &servable_identifier) {
-    return std::make_shared<_SvTp>(servable_identifier);
+    return std::make_shared<ServableType>(servable_identifier);
   }
 
   std::shared_ptr<spdlog::logger> logger_;
 
   // N.B., this uses a mutex so the insertion and retrieval of models into
   // model_cache_ is thread safe/
-  lru11::Cache<std::string, std::shared_ptr<_SvTp>> model_cache_;
+  lru11::Cache<std::string, std::shared_ptr<ServableType>> model_cache_;
 };
 
 }  // namespace torch_serving

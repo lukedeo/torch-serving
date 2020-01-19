@@ -16,7 +16,7 @@ namespace json = nlohmann;
 
 namespace torch_serving {
 
-template <class _SvTp>
+template <class ServableType>
 class ModelServer {
  public:
   explicit ModelServer(const size_t &model_capacity = 10,
@@ -117,10 +117,24 @@ class ModelServer {
           return;
         }
 
-        // Step 2: Parse the inputs to the JIT-compiled model
-        std::vector<torch::jit::IValue> inputs;
+        // Step 2: Run the inputs through the model (identified by the
+        // servable_identifier) in a future.
+        std::future<json::json> async_inference_response;
         try {
-          inputs = JsonToTorchValue(payload);
+          async_inference_response = servable_manager_.AsyncInferenceRequest(
+              servable_identifier, payload, 0.0, std::launch::async);
+        } catch (const std::exception &err) {
+          SetResponse(res, 500, "Unexpected server error", err.what());
+          return;
+        }
+
+        // Step 3: Wait for the future to be done, and set the result
+        try {
+          async_inference_response.wait();
+          SetResponse(res, 200, "Success", async_inference_response.get());
+        } catch (const std::invalid_argument &err) {
+          SetResponse(res, 400, "Invalid servable identifier");
+          return;
         } catch (const TensorIOError &err) {
           SetResponse(res, 400, "Invalid Input JSON", err.what());
           return;
@@ -129,30 +143,6 @@ class ModelServer {
           return;
         } catch (const TensorTypeError &err) {
           SetResponse(res, 400, "Incompatible tensor data type", err.what());
-          return;
-        } catch (const std::exception &err) {
-          SetResponse(res, 500, "Unexpected server error", err.what());
-          return;
-        }
-
-        // Step 3: Run the inputs through the model (identified by the
-        // servable_identifier) in a future.
-        std::future<torch::jit::IValue> async_inference_response;
-        try {
-          async_inference_response = servable_manager_.AsyncInferenceRequest(
-              servable_identifier, inputs, 0.0, std::launch::async);
-        } catch (const std::exception &err) {
-          SetResponse(res, 500, "Unexpected server error", err.what());
-          return;
-        }
-
-        // Step 4: Wait for the future to be done, and set the result
-        try {
-          async_inference_response.wait();
-          auto result = TorchValueToJson(async_inference_response.get());
-          SetResponse(res, 200, "Success", result);
-        } catch (const std::invalid_argument &err) {
-          SetResponse(res, 400, "Invalid servable identifier");
           return;
         } catch (const std::exception &err) {
           logger_->error(err.what());
@@ -184,13 +174,11 @@ class ModelServer {
   }
 
   httplib::Server server_;
-  ServableManager<_SvTp> servable_manager_;
+  ServableManager<ServableType> servable_manager_;
   std::shared_ptr<spdlog::logger> logger_;
   std::shared_ptr<httplib::ThreadPool> thread_pool_;
 };
 
 }  // namespace torch_serving
-
-//#include "src/model_server.cpp"
 
 #endif  // TORCH_SERVING__MODELSERVER_H_
