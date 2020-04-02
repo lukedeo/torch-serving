@@ -29,35 +29,43 @@ class TorchJITServable {
     }
   }
 
-  json::json RunInference(const json::json &input) {
+  virtual json::json RunInference(const json::json &input) {
     return TorchValueToJson(
-        m_servable.forward(JsonToTorchValue(input, m_device)));
+        m_servable.forward(JsonToTorchValue(input, at::kCPU)));
   }
 
-  torch::jit::script::Module LoadServable(const std::string &path) {
-//    std::cout << "WE REACH HERE" << std::endl;
+  virtual torch::jit::script::Module LoadServable(const std::string &path) {
     auto module = torch::jit::load(path);
-
     module.eval();
-    if (at::hasCUDA()) {
-      m_logger->debug("CUDA detected. Moving to GPU.");
-      module.to(at::kCUDA);
-      m_device = at::kCUDA;
-    } else {
-      m_logger->debug("Running on CPU only.");
-      m_device = at::kCPU;
-    }
-//    std::cout << "WE REACH HERE ENDDDD" << std::endl;
     return module;
   }
-  ~TorchJITServable() { m_servable.to(at::kCPU, false); }
-
  private:
   std::string m_path;
+
+ protected:
   torch::jit::script::Module m_servable;
   std::shared_ptr<spdlog::logger> m_logger;
-  at::Device m_device = at::kCPU;
 };
+
+
+class TorchJITCudaServable: TorchJITServable  {
+ public:
+
+  json::json RunInference(const json::json &input) {
+    return TorchValueToJson(
+        m_servable.forward(JsonToTorchValue(input, at::kCUDA)));
+  }
+
+  torch::jit::script::Module LoadServable(const std::string &path) override {
+    auto servable = TorchJITServable::LoadServable(path);
+    m_logger->debug("Moving to GPU.");
+    servable.to(at::kCUDA);
+    return servable;
+  }
+  
+  ~TorchJITCudaServable() { m_servable.to(at::kCPU, false); }
+};
+
 
 }  // namespace torch_serving
 #endif  // TORCH_SERVING_INCLUDE_TORCH_SERVING_TORCH_JIT_SERVABLE_H_
