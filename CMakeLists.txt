@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11...3.15)
 
 project(
-    torch_serving
+    torchserving
     VERSION 0.1.0
     DESCRIPTION "An optimized C++ serving layer for Torch"
     LANGUAGES CXX
@@ -40,10 +40,11 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(extern/spdlog)
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    # Set up testing
-    include(CTest)
-
-    add_subdirectory(tests)
-    add_test(NAME test_tensor_io COMMAND tests/test-torch-serving)
-endif()
+#if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+#    # Set up testing
+#    include(CTest)
+#
+#    add_subdirectory(tests)
+#
+#    add_test(NAME test_tensor_io COMMAND tests/test-torch-serving)
+#endif()

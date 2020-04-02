@@ -32,8 +32,10 @@ class ServableManager {
   static_assert(std::is_same<decltype(std::declval<ServableType>().RunInference(
                                  std::declval<std::vector<json::json>>())),
                              json::json>::value,
-                "");
-  static_assert(std::is_constructible<ServableType, std::string>::value, "");
+                "ServableType must have method with signature "
+                "RunInference(std::vector<json::json>) -> json::json.");
+  static_assert(std::is_constructible<ServableType, std::string>::value,
+                "ServableType must be constructible from single std::string.");
 
  public:
   ServableManager() : ServableManager(5, 0) {}

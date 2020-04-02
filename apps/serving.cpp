@@ -49,8 +49,7 @@ optionparser::OptionParser GetConfiguration(int argc, const char *argv[]) {
 }
 
 int main(int argc, const char *argv[]) {
-  std::shared_ptr<spdlog::logger> logger =
-      spdlog::stdout_color_mt("torch_serving");
+  auto logger = spdlog::stdout_color_mt("torch_serving");
   logger->info("Starting torch-serving");
 
   auto config = GetConfiguration(argc, argv);
@@ -58,8 +57,8 @@ int main(int argc, const char *argv[]) {
   auto model_capacity = config.get_value<int>("model-capacity");
   auto buffer_size = config.get_value<int>("buffer-size");
   auto threads = config.get_value<int>("threads");
-  std::string host = config.get_value<std::string>("host");
-  int port = config.get_value<int>("port");
+  auto host = config.get_value<std::string>("host");
+  auto port = config.get_value<int>("port");
 
   torch_serving::ModelServer<torch_serving::TorchJITServable> model_server(
       model_capacity, buffer_size, threads);

@@ -6,6 +6,7 @@
 #define TORCH_SERVING_INCLUDE_TORCH_SERVING_TORCH_JIT_SERVABLE_H_
 
 #include <torch/script.h>
+#include <torch/torch.h>
 
 #include <spdlog/logger.h>
 #include <spdlog/sinks/stdout_color_sinks-inl.h>
@@ -34,9 +35,11 @@ class TorchJITServable {
   }
 
   torch::jit::script::Module LoadServable(const std::string &path) {
+//    std::cout << "WE REACH HERE" << std::endl;
     auto module = torch::jit::load(path);
+
     module.eval();
-    if (torch::hasCUDA()) {
+    if (at::hasCUDA()) {
       m_logger->debug("CUDA detected. Moving to GPU.");
       module.to(at::kCUDA);
       m_device = at::kCUDA;
@@ -44,6 +47,7 @@ class TorchJITServable {
       m_logger->debug("Running on CPU only.");
       m_device = at::kCPU;
     }
+//    std::cout << "WE REACH HERE ENDDDD" << std::endl;
     return module;
   }
   ~TorchJITServable() { m_servable.to(at::kCPU, false); }
