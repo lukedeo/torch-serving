@@ -64,10 +64,10 @@ TEST_CASE("Test JSON Torch Tensor") {
 TEST_CASE("Test servable manager inference") {
   torch_serving::ServableManager<torch_serving::TorchJITServable> manager;
 
-  std::string servable_payload =
-      GetEnvVar("TS_TEST_PAYLOAD", "../tests/assets/test-servable-payload.json");
-  std::string servable_response =
-      GetEnvVar("TS_TEST_RESPONSE", "../tests/assets/test-servable-response.json");
+  std::string servable_payload = GetEnvVar(
+      "TS_TEST_PAYLOAD", "../tests/assets/test-servable-payload.json");
+  std::string servable_response = GetEnvVar(
+      "TS_TEST_RESPONSE", "../tests/assets/test-servable-response.json");
   std::string servable_model =
       GetEnvVar("TS_TEST_MODEL", "../tests/assets/test-servable.pt");
 
