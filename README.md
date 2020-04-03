@@ -26,7 +26,7 @@ Run:
 mkdir build && cd build
 cmake -DCMAKE_PREFIX_PATH=/path/to/libtorch ..
 # OR
-cmake -DCMAKE_PREFIX_PATH=$(scripts/libtorch-root) ..
+cmake -DCMAKE_PREFIX_PATH=$(../scripts/libtorch-root) ..
 make
 ```
 

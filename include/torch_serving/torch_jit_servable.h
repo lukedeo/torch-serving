@@ -39,6 +39,7 @@ class TorchJITServable {
     module.eval();
     return module;
   }
+
  private:
   std::string m_path;
 
@@ -47,11 +48,10 @@ class TorchJITServable {
   std::shared_ptr<spdlog::logger> m_logger;
 };
 
-
-class TorchJITCudaServable: TorchJITServable  {
+class TorchJITCudaServable : TorchJITServable {
  public:
-
-  json::json RunInference(const json::json &input) {
+  explicit TorchJITCudaServable(std::string path) : TorchJITServable(path) {}
+  json::json RunInference(const json::json &input) override {
     return TorchValueToJson(
         m_servable.forward(JsonToTorchValue(input, at::kCUDA)));
   }
@@ -62,10 +62,9 @@ class TorchJITCudaServable: TorchJITServable  {
     servable.to(at::kCUDA);
     return servable;
   }
-  
+
   ~TorchJITCudaServable() { m_servable.to(at::kCPU, false); }
 };
-
 
 }  // namespace torch_serving
 #endif  // TORCH_SERVING_INCLUDE_TORCH_SERVING_TORCH_JIT_SERVABLE_H_
