@@ -40,7 +40,7 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(extern/spdlog)
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND NOT SKIP_TESTS)
     # Set up testing
     include(CTest)
 

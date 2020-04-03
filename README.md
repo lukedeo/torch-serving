@@ -30,10 +30,10 @@ cmake -DCMAKE_PREFIX_PATH=$(../scripts/libtorch-root) ..
 make
 ```
 
-The executable will be `torch-serving`. Go ahead and move that up a directory:
+The executable will be `apps/torch-serving`. Go ahead and move that up a directory:
 
 ```bash
-mv torch-serving .. && cd ..
+mv apps/torch-serving .. && cd ..
 ```
 
 # Saving a JIT model (from Python)
