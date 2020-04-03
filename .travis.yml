@@ -12,6 +12,5 @@ before_install:
   - sudo pip3 install --upgrade pip &> /dev/null
   - USE_CUDA=0 pip3 install --user torch==1.4.0 --progress-bar off
 script:
-  - export USE_CUDA=0
-  - mkdir build && cd build && cmake -DCMAKE_PREFIX_PATH=$(../scripts/libtorch-root) .. && make
+  - USE_CUDA=0 mkdir build && cd build && cmake -DCMAKE_PREFIX_PATH=$(../scripts/libtorch-root) .. && make
   - ctest -VV
