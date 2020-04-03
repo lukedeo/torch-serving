@@ -50,52 +50,48 @@ which creates a dumb big model with interesting inputs and outputs (i.e., `List[
 
 # Running the server & making a request.
 
-From the repo directory (after following the build), just run `torch-serving`.
+From the repo directory (after following the build), just run `./torch-serving`.
 
-In another terminal, run a request through!
+In another terminal, run a request through (maybe pipe through `jq` if you've got that installed)!
 
 ```bash
-curl -s -X POST \
-    -d "[\
-        {\"type\":\"tensor\", \"shape\": [1, 2], \"value\": [10, 1]}, \
-        {\"type\":\"tensor\", \"shape\": [1, 3], \"value\": [10, 1, 1]}\
-        ]" \
-    "localhost:8888/v1/serve/model-example.pt"
+curl -X POST \
+    --data @example/post-data.json \
+    localhost:8888/serve?servable_identifier=model-example.pt
 ```
 
 which should output:
 
 ```json
 {
-  "code": 200,
-  "description": "Success",
-  "message": "OK",
-  "result": [
-    {
-      "shape": [
-        1,
-        3
+  "type": "generic_dict",
+  "value": {
+    "out": [
+      [
+        {
+          "data_type": "float32",
+          "shape": [1, 3],
+          "type": "tensor",
+          "value": [19.27, 5.28, 3.72]
+        },
+        {
+          "data_type": "float32",
+          "shape": [1, 3],
+          "type": "tensor",
+          "value": [60, 33, 33]
+        }
       ],
-      "type": "tensor",
-      "value": [
-        20.395009994506836,
-        0.9330979585647583,
-        3.44999361038208
-      ]
-    },
-    {
-      "shape": [
-        1,
-        3
-      ],
-      "type": "tensor",
-      "value": [
-        10,
-        1,
-        1
-      ]
-    }
-  ]
+      {
+        "type": "string",
+        "value": "Hello!"
+      },
+      {
+        "data_type": "int64",
+        "type": "scalar",
+        "value": 30
+      }
+    ]
+  }
 }
 ```
 
