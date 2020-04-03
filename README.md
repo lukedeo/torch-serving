@@ -20,7 +20,7 @@ git clone --recursive https://github.com/lukedeo/torch-serving
 
 We expect you to have `libtorch` unpacked somewhere (available [here](https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip)), and CMake available (as well as a C++11 compliant compiler).
 
-This is also achievable using a python installed version of `torch`. We provide a script to locate the path to `libtorch` in your python installation.
+This is also achievable using a python installed version of `torch==1.4.0`. We provide a script to locate the path to `libtorch` in your python installation.
 
 Run:
 

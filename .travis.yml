@@ -10,8 +10,8 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install python3-dev python3-pip
   - sudo pip3 install --upgrade pip &> /dev/null
-  - NO_CUDA=1 pip3 install --user torch==1.4.0 --progress-bar off
+  - USE_CUDA=0 pip3 install --user torch==1.4.0 --progress-bar off
 script:
-  - export NO_CUDA=1
+  - export USE_CUDA=0
   - mkdir build && cd build && cmake -DCMAKE_PREFIX_PATH=$(../scripts/libtorch-root) .. && make
   - ctest -VV
