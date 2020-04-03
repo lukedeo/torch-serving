@@ -11,7 +11,7 @@ dist: xenial
 before_install:
 #  - sudo apt-get update
 #  - sudo apt-get install python3-dev python3-pip
-  - USE_CUDA=0 pip install --user future torch==1.4.0 --progress-bar off
+  - USE_CUDA=0 pip install --user future numpy torch==1.4.0 --progress-bar off
 script:
   - pip list
   - python -c 'import torch; print(torch.__file__)'
