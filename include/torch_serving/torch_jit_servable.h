@@ -1,6 +1,8 @@
 //
-// Created by Luke deOliveira on 1/7/20.
+// (c) 2020, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
 //
+
 
 #ifndef TORCH_SERVING_INCLUDE_TORCH_SERVING_TORCH_JIT_SERVABLE_H_
 #define TORCH_SERVING_INCLUDE_TORCH_SERVING_TORCH_JIT_SERVABLE_H_

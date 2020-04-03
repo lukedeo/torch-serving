@@ -1,3 +1,8 @@
+//
+// (c) 2020, Luke de Oliveira
+// This code is licensed under MIT license (see LICENSE for details)
+//
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 

@@ -1,5 +1,5 @@
 //
-// (c) 2019, Luke de Oliveira
+// (c) 2020, Luke de Oliveira
 // This code is licensed under MIT license (see LICENSE for details)
 //
 
