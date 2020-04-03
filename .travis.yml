@@ -9,8 +9,8 @@ python:
 language: cpp
 dist: xenial
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install python3-dev python3-pip
+#  - sudo apt-get update
+#  - sudo apt-get install python3-dev python3-pip
   - sudo pip3 install --upgrade pip &> /dev/null
   - USE_CUDA=0 pip3 install --user torch==1.4.0 --no-binary=torch --progress-bar off
 script:
