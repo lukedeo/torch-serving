@@ -1,6 +1,6 @@
 # torch-serving
 
-A simple, limited scope model server for [JIT compiled PyTorch models](https://pytorch.org/docs/stable/jit.html), whipped up in two days of a hackathon.
+A simple, limited scope model server for [JIT compiled PyTorch models](https://pytorch.org/docs/stable/jit.html).
 
 The key idea is that one should be able to spin up a simple HTTP service that should *just work*, and be able to handle inbound requests to JIT compiled models. We want to do a few key things to make this work well:
 
@@ -10,7 +10,7 @@ The key idea is that one should be able to spin up a simple HTTP service that sh
 
 # Building the project
 
-This was whipped up in two days so the build is a bit suboptimal to say the least...
+The build is suboptimal - it would be great to make the `CMake` config better. 
 
 Clone the repo (and submodule) with:
 
@@ -19,6 +19,8 @@ git clone --recursive https://github.com/lukedeo/torch-serving
 ```
 
 We expect you to have `libtorch` unpacked somewhere (available [here](https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip)), and CMake available (as well as a C++11 compliant compiler).
+
+This is also achievable using a python installed version of `torch`. We provide a script to locate the path to `libtorch` in your python installation.
 
 Run:
 
@@ -102,11 +104,5 @@ Note that we represent tensors *unraveled* and specify a shape, where you can do
 
 * Documentation
 * Better build
-* Move this to a library with actual linking - fully header-only for ease of getting off the ground
-* GPU & general device support & control
-* Support different tensor types (`float16`, etc.)
-* Support `type: image` and `type: text` from JSON (base64 and plain string representation, respectively)
-* Support dictionaries of tensors as input and output.
-* Command line configuration
+* Support `type: image`  from JSON (base64 encoding)
 * Wire up the cache invalidation probability to the API.
-* Tests!
