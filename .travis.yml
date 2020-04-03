@@ -11,6 +11,7 @@ dist: bionic
 before_install:
 #  - sudo apt-get update
 #  - sudo apt-get install python3-dev python3-pip
+  - pyenv global system 3.7.6
   - USE_CUDA=0 pip3.7 install --user numpy torch==1.4.0 --progress-bar off
 script:
   - pip list
