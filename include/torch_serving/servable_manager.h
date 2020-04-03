@@ -7,7 +7,6 @@
 #define TORCH_SERVING__SERVABLEMANAGER_H_
 
 #include <spdlog/logger.h>
-//#include <torch/script.h>
 
 #include <future>
 
