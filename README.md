@@ -38,6 +38,12 @@ The executable will be `apps/torch-serving`. Go ahead and move that up a directo
 mv apps/torch-serving .. && cd ..
 ```
 
+Run the tests (in the parent directory) with:
+
+```bash
+build/tests/test-torch-serving
+```
+
 # Saving a JIT model (from Python)
 
 Now, ensure you have Python & `torch` installed, and run
@@ -102,6 +108,7 @@ Note that we represent tensors *unraveled* and specify a shape, where you can do
 
 # TODOs
 
+* CI (Someone feel like setting up GH Actions?)
 * Documentation
 * Better build
 * Support `type: image`  from JSON (base64 encoding)
