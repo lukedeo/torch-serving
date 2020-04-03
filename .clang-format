@@ -1,0 +1,14 @@
+BasedOnStyle: Google
+
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+AllowShortCaseLabelsOnASingleLine: false
+
+SpaceAfterCStyleCast: true
+
+FixNamespaceComments: true
+
+SortIncludes: true
+
+SpaceBeforeCpp11BracedList: true

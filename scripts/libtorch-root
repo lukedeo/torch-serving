@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+import os
+import sys
+
+if __name__ == "__main__":
+    try:
+        import torch
+    except ImportError:
+        sys.stderr.write("Missing installation of PyTorch")
+        sys.exit(1)
+
+    libtorch_root = os.path.dirname(os.path.abspath(torch.__file__))
+    sys.stdout.write(libtorch_root)
