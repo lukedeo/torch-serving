@@ -16,6 +16,10 @@ std::string GetEnvVar(const std::string &variable_name,
   return value ? value : default_value;
 }
 
+std::string GetDefaultAssetDir() {
+  return GetEnvVar("TS_ASSET_DIR", "../tests/assets");
+}
+
 TEST_CASE("Test Torch Tensor to JSON") {
   auto t = torch::tensor({1, 2, 3, 4});
   auto result = torch_serving::TorchValueToJson(t);
@@ -70,11 +74,12 @@ TEST_CASE("Test servable manager inference") {
   torch_serving::ServableManager<torch_serving::TorchJITServable> manager;
 
   std::string servable_payload = GetEnvVar(
-      "TS_TEST_PAYLOAD", "../tests/assets/test-servable-payload.json");
-  std::string servable_response = GetEnvVar(
-      "TS_TEST_RESPONSE", "../tests/assets/test-servable-response.json");
+      "TS_TEST_PAYLOAD", GetDefaultAssetDir() + "/test-servable-payload.json");
+  std::string servable_response =
+      GetEnvVar("TS_TEST_RESPONSE",
+                GetDefaultAssetDir() + "/test-servable-response.json");
   std::string servable_model =
-      GetEnvVar("TS_TEST_MODEL", "../tests/assets/test-servable.pt");
+      GetEnvVar("TS_TEST_MODEL", GetDefaultAssetDir() + "/test-servable.pt");
 
   json::json payload = json::json::parse(std::ifstream(servable_payload));
   json::json response = json::json::parse(std::ifstream(servable_response));
