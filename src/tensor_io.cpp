@@ -166,7 +166,7 @@ json::json TorchValueToJson(const torch::jit::IValue &torch_value) {
   if (torch_value.isTensor()) {
     return TensorToJson(torch_value.toTensor());
   } else if (torch_value.isTensorList()) {
-    auto tensor_list = torch_value.toTensorListRef();
+    auto tensor_list = torch_value.toTensorList();
     json::json payload = json::json::array();
     for (const auto &tensor : tensor_list) {
       payload.emplace_back(TensorToJson(tensor));
